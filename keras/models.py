@@ -374,8 +374,8 @@ class Sequential(Model, containers.Sequential):
             test_accuracy = T.mean(T.eq(T.argmax(self.y, axis=-1), T.argmax(self.y_test, axis=-1)))
 
         elif class_mode == "binary":
-            train_accuracy = T.mean(T.eq(self.y, T.round(self.y_train)))
-            test_accuracy = T.mean(T.eq(self.y, T.round(self.y_test)))
+            train_accuracy = T.mean(T.eq(self.y, T.round(self.y_train)), dtype='float32')
+            test_accuracy = T.mean(T.eq(self.y, T.round(self.y_test)), dtype='float32')
         else:
             raise Exception("Invalid class mode:" + str(class_mode))
         self.class_mode = class_mode
