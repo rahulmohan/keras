@@ -99,10 +99,11 @@ class Callback(object):
 class BaseLogger(Callback):
     def on_train_begin(self, logs={}):
         self.verbose = self.params['verbose']
+        self.nb_epoch = self.params['nb_epoch']
 
     def on_epoch_begin(self, epoch, logs={}):
         if self.verbose:
-            print('Epoch %d' % epoch)
+            print('Epoch %d/%d' % (epoch + 1, self.nb_epoch))
             self.progbar = Progbar(target=self.params['nb_sample'],
                                    verbose=self.verbose)
         self.seen = 0
@@ -182,6 +183,7 @@ class ModelCheckpoint(Callback):
         self.best = np.Inf
 
     def on_epoch_end(self, epoch, logs={}):
+        filepath = self.filepath.format(epoch=epoch, **logs)
         if self.save_best_only:
             current = logs.get(self.monitor)
             if current is None:
@@ -190,16 +192,16 @@ class ModelCheckpoint(Callback):
                 if current < self.best:
                     if self.verbose > 0:
                         print("Epoch %05d: %s improved from %0.5f to %0.5f, saving model to %s"
-                              % (epoch, self.monitor, self.best, current, self.filepath))
+                              % (epoch, self.monitor, self.best, current, filepath))
                     self.best = current
-                    self.model.save_weights(self.filepath, overwrite=True)
+                    self.model.save_weights(filepath, overwrite=True)
                 else:
                     if self.verbose > 0:
                         print("Epoch %05d: %s did not improve" % (epoch, self.monitor))
         else:
             if self.verbose > 0:
-                print("Epoch %05d: saving model to %s" % (epoch, self.filepath))
-            self.model.save_weights(self.filepath, overwrite=True)
+                print("Epoch %05d: saving model to %s" % (epoch, filepath))
+            self.model.save_weights(filepath, overwrite=True)
 
 
 class EarlyStopping(Callback):
@@ -271,4 +273,4 @@ class LearningRateScheduler(Callback):
         self.schedule = schedule
 
     def on_epoch_begin(self, epoch, logs={}):
-        model.lr.set_value(self.schedule(epoch))
+        self.model.optimizer.lr.set_value(self.schedule(epoch))

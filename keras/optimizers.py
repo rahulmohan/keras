@@ -41,6 +41,9 @@ class Optimizer(object):
             norm = T.sqrt(sum([T.sum(g ** 2) for g in grads]))
             grads = [clip_norm(g, self.clipnorm, norm) for g in grads]
 
+        if hasattr(self, 'clipvalue') and self.clipvalue > 0:
+            grads = [T.clip(g, -self.clipvalue, self.clipvalue) for g in grads]
+
         return grads
 
     def get_config(self):
@@ -55,6 +58,7 @@ class SGD(Optimizer):
         self.iterations = shared_scalar(0)
         self.lr = shared_scalar(lr)
         self.momentum = shared_scalar(momentum)
+        self.decay = shared_scalar(decay)
 
     def get_updates(self, params, constraints, loss):
         grads = self.get_gradients(loss, params)
@@ -78,7 +82,7 @@ class SGD(Optimizer):
         return {"name": self.__class__.__name__,
                 "lr": float(self.lr.get_value()),
                 "momentum": float(self.momentum.get_value()),
-                "decay": float(self.decay.get_value()),
+                "decay": float(self.decay),
                 "nesterov": self.nesterov}
 
 
