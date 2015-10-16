@@ -4,7 +4,7 @@ from __future__ import absolute_import
 import theano
 import theano.tensor as T
 from theano.tensor.signal import downsample
-
+from theano.sandbox.cuda.dnn import dnn_pool
 from .. import activations, initializations, regularizers, constraints
 from ..utils.theano_utils import shared_zeros, on_gpu
 from ..layers.core import Layer
@@ -343,7 +343,8 @@ class MaxPooling2D(Layer):
 
     def get_output(self, train=False):
         X = self.get_input(train)
-        output = downsample.max_pool_2d(X, ds=self.pool_size, st=self.stride, ignore_border=self.ignore_border)
+	output = dnn_pool(X, self.pool_size, stride=self.stride);
+        #output = downsample.max_pool_2d(X, ds=self.pool_size, st=self.stride, ignore_border=self.ignore_border)
         return output
 
     def get_config(self):
